@@ -1,0 +1,127 @@
+================================================================================
+       VIVA PREPARATION & FACULTY EVALUATION QUESTIONS AND ANSWERS
+             AI - POWERED MENTAL HEALTH MONITORING SYSTEM
+================================================================================
+Course: Operating Systems (CCSE0303A) - Project-Based Learning (PBL)
+Institution: NIET Greater Noida | Department of Artificial Intelligence
+Group: Group 24 | Faculty Coordinator: Mr. Manish Choudhary
+
+--------------------------------------------------------------------------------
+Q1: Why does an AI-Powered Mental Health system need Operating System design?
+--------------------------------------------------------------------------------
+ANSWER:
+"An AI mental health platform is a cyber-physical real-time system. When a patient
+expresses suicidal ideation or acute panic, the application must immediately switch
+CPU contexts, preempt background tasks (like database backups), synchronize access
+to shared patient records, avoid circular deadlocks over GPU accelerators, and load
+model weights into RAM without thrashing. Operating System mechanisms govern latency,
+safety, and deterministic execution in life-critical scenarios."
+
+--------------------------------------------------------------------------------
+Q2: What is the difference between Processes and Threads in your system?
+--------------------------------------------------------------------------------
+ANSWER:
+"We use a hybrid approach:
+- Heavyweight Processes (fork/exec) are used at system boundaries (e.g., isolating
+  the public Web API gateway from the core inference engine) to ensure memory
+  isolation and HIPAA security compliance.
+- Lightweight Kernel Threads (pthreads) are used inside the AI inference daemon
+  (e.g., SensorProducer thread and AIWorker threads). Threads share the heap and
+  transformer model weights, which prevents replicating gigabytes of model data in
+  RAM and cuts context-switching time from microseconds to under 150 nanoseconds."
+
+--------------------------------------------------------------------------------
+Q3: Why is Preemptive Priority or SRTF preferred over FCFS for crisis detection?
+--------------------------------------------------------------------------------
+ANSWER:
+"In our benchmark simulation (scheduler_benchmark.py):
+- Under FCFS and non-preemptive SJF, the urgent suicide alert task (P2) is forced
+  to wait 7.00 ms behind a routine audio processing task (Convoy Effect).
+- Under Preemptive Priority Scheduling and SRTF, as soon as the high-priority crisis
+  packet arrives at t=1ms, the CPU immediately preempts the running task, reducing
+  waiting time for P2 to exactly 0.00 ms.
+- For our final architecture, we recommend a 3-Tier Multilevel Feedback Queue (MLFQ)
+  where Tier 0 uses SCHED_FIFO for sub-millisecond emergency dispatch."
+
+--------------------------------------------------------------------------------
+Q4: How do you prevent Race Conditions when accessing patient vital signs?
+--------------------------------------------------------------------------------
+ANSWER:
+"We implemented a custom Writer-Preference ReadWriteLock (in app.py).
+In a hospital setting, attending medical staff frequently read patient vitals, while
+the AI engine updates risk scores periodically. If we use standard mutexes, readers
+block each other. If we use reader-preference locks, writers starve.
+Our Writer-Preference lock allows multiple concurrent readers, but as soon as an AI
+worker has an emergency status update to write, newly arriving readers wait until
+the writer commits, guaranteeing zero dirty reads."
+
+--------------------------------------------------------------------------------
+Q5: How does Banker's Algorithm avoid deadlocks in your project?
+--------------------------------------------------------------------------------
+ANSWER:
+"We model three finite hardware resources: GPU Tensor Cores, Audio DMA Buffers,
+and High-Speed Shared Memory Channels.
+Before granting any resource request to an AI process, Banker's Algorithm computes
+the Need matrix (Need = Max - Allocation) and simulates allocation. It searches for a
+'Safe Sequence' (e.g., P1 -> P3 -> P0 -> P2 -> P4) where every process can obtain
+its maximum claim and terminate. If a safe sequence exists, the request is granted;
+otherwise, the process must wait, preventing circular wait and deadlock."
+
+--------------------------------------------------------------------------------
+Q6: What memory management scheme does your system use, and why?
+--------------------------------------------------------------------------------
+ANSWER:
+"We use Segmented Paging.
+- Pure segmentation reflects the logical organization of our program (code, model
+  weights, patient vectors, stack) but suffers from external fragmentation.
+- Pure paging eliminates external fragmentation but ignores logical boundaries.
+- Segmented Paging divides each logical segment into fixed 4 KB physical pages.
+- For large Transformer models that exceed physical RAM, we use Demand Paging with
+  Least Recently Used (LRU) page replacement. LRU is a stack algorithm and is
+  mathematically immune to Belady's Anomaly."
+
+--------------------------------------------------------------------------------
+Q7: Why choose C-LOOK over FCFS or SCAN for disk scheduling?
+--------------------------------------------------------------------------------
+ANSWER:
+"In our numerical calculations for 8 disk cylinder requests:
+- FCFS required 640 cylinders of head traversal (extreme mechanical latency).
+- SCAN required 331 cylinders and moves all the way to the disk edge (199).
+- C-LOOK required only 322 cylinders. It services requests in one direction and then
+  immediately jumps back to the lowest pending request without traveling to the
+  unnecessary physical boundaries of the disk, providing uniform waiting times for
+  patient database logging."
+
+--------------------------------------------------------------------------------
+Q8: Why use Docker Containerization instead of traditional Virtual Machines?
+--------------------------------------------------------------------------------
+ANSWER:
+"Traditional Type-2 hypervisors run an entire guest operating system, consuming
+several gigabytes of RAM and incurring virtualization overhead during memory
+translation. Docker containers leverage Linux kernel namespaces and cgroups to share
+the host kernel, starting in under 500 ms and allowing near-instant auto-scaling
+during mental health crisis spikes."
+
+--------------------------------------------------------------------------------
+Q9: How do your Linux shell scripts enforce security and reliability?
+--------------------------------------------------------------------------------
+ANSWER:
+"We developed four shell scripts:
+1. user_mgmt.sh: Implements Role-Based Access Control (RBAC) and sets chmod 770
+   on '/opt/mental_health/patient_vault' to isolate medical records.
+2. process_monitor.sh: Watchdog that inspects AI process CPU/memory and triggers
+   automatic restarts if a crash or zombie state occurs.
+3. backup_automation.sh: Encrypts databases, generates SHA-256 integrity hashes,
+   and purges archives older than 14 days to prevent storage exhaustion.
+4. system_health.sh: Collects kernel uptime, vmstat context switches, and IPC state."
+
+--------------------------------------------------------------------------------
+Q10: How does this project align with Sustainable Development Goal 3 (SDG 3)?
+--------------------------------------------------------------------------------
+ANSWER:
+"Target 3.4 of UN SDG 3 aims to reduce premature mortality and promote mental health
+and well-being. By ensuring deterministic sub-12ms response times for suicide and
+panic crisis alerts, eliminating software deadlocks, and securing sensitive patient
+records, our operating system framework directly enhances the scalability,
+reliability, and accessibility of digital mental healthcare."
+================================================================================

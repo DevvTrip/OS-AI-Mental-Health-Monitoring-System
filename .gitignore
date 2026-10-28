@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Files not part of the code submission (kept local)
+GA_Operating Systems.pdf
+TOPIC APPROVAL FORM (2)-3.pdf
+~$*
+
+# OS
+.DS_Store
+Thumbs.db

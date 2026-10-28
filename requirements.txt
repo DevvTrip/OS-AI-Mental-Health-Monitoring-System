@@ -1,0 +1,3 @@
+# Only needed if you want to re-build the Word report (generate_report_docx.py).
+# app.py and scheduler_benchmark.py use Python standard library only.
+python-docx>=0.8.11

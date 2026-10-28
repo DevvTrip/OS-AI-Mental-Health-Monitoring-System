@@ -1,0 +1,214 @@
+================================================================================
+          AI - POWERED MENTAL HEALTH MONITORING SYSTEM (OS-PBL)
+     COMPLETE EXECUTION MANUAL & DETAILED SYSTEM ARCHITECTURE EXPLANATION
+================================================================================
+Course: Operating Systems (CCSE0303A) - Project-Based Learning (PBL)
+Institution: Noida Institute of Engineering & Technology (NIET), Greater Noida
+Department: Department of Artificial Intelligence
+Group: Group 24 | Academic Session: 2026-2027
+Faculty Coordinator: Mr. Manish Choudhary
+
+Group Members & Primary Module Roles:
+  1. Devvrat Tripathi (0251CSAI231 / 2501331520078) - Team Lead & System Analyst
+  2. Manas Srivastava (0251CSAI144) - Linux & CPU Scheduling Specialist
+  3. Pranjal Sharma (0251CSAI141) - Concurrency & Virtual Memory Specialist
+  4. Hardik Kumar (0251CSAI195) - Deadlock Avoidance & Storage Specialist
+  5. Mritunjay Gupta (0251CSAI132) - Modern OS & Virtualization Specialist
+
+================================================================================
+PART 1: HOW TO EXECUTE THE CODE (STEP-BY-STEP)
+================================================================================
+
+PREREQUISITES:
+- Python 3.8 or higher installed on your computer.
+- Standard terminal: Windows PowerShell, Command Prompt (CMD), or VS Code Terminal.
+
+--------------------------------------------------------------------------------
+STEP 1: Open Terminal in the Project Directory
+--------------------------------------------------------------------------------
+1. Open PowerShell or Command Prompt.
+2. Change directory to the project folder:
+   cd "D:\Anitgravity\os pbl"
+
+3. Verify files exist:
+   dir
+
+--------------------------------------------------------------------------------
+STEP 2: Run the Main Project Pipeline (app.py)
+--------------------------------------------------------------------------------
+Command:
+   python app.py
+
+WHAT HAPPENS DURING EXECUTION:
+1. Banker's Deadlock Avoidance Test:
+   - The system checks available GPU cores, Audio buffers, and Shared memory.
+   - Calculates the 'Need' matrix and validates a Safe Sequence:
+     P1 -> P3 -> P0 -> P2 -> P4.
+   - A process dynamically requests resources, and the algorithm safely grants
+     it only after verifying that the system remains in a safe state.
+
+2. Concurrent Ingestion & Multi-Threading:
+   - The 'SensorProducer' thread streams biometric telemetry (Heart Rate) and
+     patient text statements.
+   - Two 'AIWorker' consumer threads compete for incoming packets using a
+     thread-safe Priority Queue.
+
+3. Real-Time Crisis Preemption:
+   - When text like "hopeless", "harm", or heart rate > 130 is detected,
+     the packet is assigned Priority 1 (highest urgency).
+   - High-priority tasks execute with shorter latency and trigger an immediate:
+     "[!] >>> CRITICAL ALERT DISPATCHED: Emergency Medical Notification sent!"
+
+4. Thread-Safe Patient Record Updates:
+   - AI workers acquire a Writer-Preference ReadWriteLock before updating
+     the patient database to prevent race conditions and dirty reads.
+
+5. Virtual Memory (LRU Page Replacement):
+   - Active patient profile contexts are loaded into a simulated 3-frame RAM cache.
+   - You will see Cache Hits and Page Faults with LRU eviction logged at the end.
+
+--------------------------------------------------------------------------------
+STEP 3: Run the CPU Scheduling Benchmark (scheduler_benchmark.py)
+--------------------------------------------------------------------------------
+Command:
+   python scheduler_benchmark.py
+
+WHAT HAPPENS DURING EXECUTION:
+- Evaluates 5 CPU scheduling algorithms on clinical healthcare tasks:
+  1. First-Come, First-Served (FCFS)
+  2. Shortest Job First (SJF - Non-preemptive)
+  3. Shortest Remaining Time First (SRTF - Preemptive SJF)
+  4. Preemptive Priority Scheduling
+  5. Round Robin (RR, Quantum = 4 ms)
+- Computes Waiting Time (WT), Turnaround Time (TAT), and Crisis Task P2 Latency.
+- Demonstrates why Preemptive Priority and SRTF achieve 0.00 ms wait for crisis
+  alerts, whereas FCFS forces life-critical tasks to wait 7.00 ms (Convoy Effect).
+
+--------------------------------------------------------------------------------
+STEP 4: Run the Linux Automation Shell Scripts (Optional / Linux or Git Bash)
+--------------------------------------------------------------------------------
+If you are on Linux or using Git Bash on Windows, you can inspect and execute:
+- bash scripts/user_mgmt.sh          (Sets up RBAC groups and chmod 770 vault)
+- bash scripts/process_monitor.sh    (Monitors CPU/Memory and restarts app.py)
+- bash scripts/backup_automation.sh  (Archives DB, generates SHA256 checksum)
+- bash scripts/system_health.sh      (Displays kernel, uptime, vmstat, and IPC)
+
+--------------------------------------------------------------------------------
+STEP 5: Open the Word Report Document
+--------------------------------------------------------------------------------
+Command in PowerShell:
+   start "OS_PBL_REPORT_GROUP_24.docx"
+
+This opens the complete 21-section academic report formatted in Times New Roman,
+12pt, 1.5 line spacing, 1-inch margins, complete with all faculty submission tables.
+
+
+================================================================================
+PART 2: HOW THE ENTIRE PROJECT WORKS (END-TO-END ARCHITECTURE)
+================================================================================
+
+The project solves a major real-world challenge: How to run life-critical AI
+models on top of an Operating System without suffering from CPU bottlenecks,
+deadlocks, thread race conditions, or memory thrashing.
+
+The system connects four core Operating System modules to an AI healthcare domain:
+
+--------------------------------------------------------------------------------
+1. THE AI DOMAIN LAYER (Mental Health Sentiment & Crisis Detection)
+--------------------------------------------------------------------------------
+- Continuous Inputs: Heart Rate (HR) telemetry and text conversation.
+- NLP Sentiment Engine: Scans conversational tokens against an acoustic/lexical
+  crisis dictionary ("suicide", "harm", "panic", "can't breathe").
+- Urgency Scoring:
+  * Priority 1 (CRITICAL_CRISIS): High heart rate (>130 bpm) or severe despair.
+  * Priority 2 (ELEVATED_ANXIETY): Moderate distress, elevated HR (105-130 bpm).
+  * Priority 3 (NORMAL_AFFECT): Baseline healthy affect, resting HR (<100 bpm).
+
+--------------------------------------------------------------------------------
+2. MODULE 1: OS FUNDAMENTALS & LINUX AUTOMATION
+--------------------------------------------------------------------------------
+- Kernel Architecture: Monolithic Linux Kernel with the PREEMPT_RT patch.
+- Privilege Management: Separation of user accounts via Role-Based Access Control
+  (RBAC). Clinical records are stored in '/opt/mental_health/patient_vault'
+  configured with 'chmod 770' to prevent unauthorized users from viewing patient data.
+- System Watchdog: An automated shell script checks the PID of the AI engine every
+  few seconds, catches zombie processes, and automatically restarts the daemon
+  if an unexpected crash occurs.
+
+--------------------------------------------------------------------------------
+3. MODULE 2: PROCESS & CPU SCHEDULING MANAGEMENT
+--------------------------------------------------------------------------------
+- Process Control Block (PCB): The kernel tracks state transitions (Ready, Running,
+  Waiting, Terminated) and stores a 'Medical Urgency Flag' in the PCB.
+- Multithreading vs Multiprocessing:
+  * Heavyweight processes are used for network boundary security.
+  * Lightweight kernel threads (POSIX pthreads) are used inside the AI engine
+    to share model weights in memory without duplicating gigabytes of RAM.
+- CPU Scheduling Solution (3-Tier Multilevel Feedback Queue - MLFQ):
+  * Queue 0 (Top Priority): Preemptive Priority / SCHED_FIFO for crisis alerts.
+    Guarantees sub-5ms deterministic response time.
+  * Queue 1 (Interactive): Round Robin (q = 8 ms) for real-time patient chat.
+  * Queue 2 (Batch): Completely Fair Scheduler (CFS) for database archival.
+
+--------------------------------------------------------------------------------
+4. MODULE 3: CONCURRENCY, SYNCHRONIZATION & DEADLOCK AVOIDANCE
+--------------------------------------------------------------------------------
+- Race Condition Prevention:
+  * When sensor threads update heart rate data while medical staff read the
+    dashboard, data corruption can occur.
+  * Solution: Implemented a Writer-Preference ReadWriteLock. Attending staff can
+    read records concurrently, but when an emergency update arrives, the writer
+    is prioritized to ensure zero dirty reads.
+- Bounded-Buffer Producer-Consumer:
+  * A thread-safe Priority Queue decouples sensor packet producers from AI workers.
+- Deadlock Avoidance (Banker's Algorithm):
+  * Hardware resources (GPU tensor cores, audio channels, shared memory) are finite.
+  * Before allocating resources to any AI inference worker, the Banker's
+    safety algorithm runs:
+    Need = Max - Allocation
+    It checks whether a sequence of processes can finish safely. If granting a
+    request would lead to an unsafe state (risk of deadlock), the process is
+    made to wait and the system rolls back.
+
+--------------------------------------------------------------------------------
+5. MODULE 4: MEMORY MANAGEMENT, VIRTUAL MEMORY & MODERN OS
+--------------------------------------------------------------------------------
+- Segmented Paging: Eliminates external memory fragmentation while preserving
+  logical separation of model code, patient data, and runtime stacks.
+- Virtual Memory & Demand Paging:
+  * Transformer neural network weights are large (2–4 GB). The system loads
+    pages into physical RAM only upon reference (Demand Paging).
+  * Page Fault Handling: When an unmapped page is accessed, the MMU raises a
+    page fault trap, and the OS brings the page from fast NVMe storage into RAM.
+- Page Replacement (LRU):
+  * Implemented Least Recently Used (LRU) eviction. When physical frames are full,
+    the oldest unreferenced patient profile is evicted to disk.
+  * LRU is mathematically immune to Belady's Anomaly (unlike FIFO).
+- Storage & Disk Scheduling:
+  * Uses Linux ext4 file system with metadata journaling for crash consistency.
+  * Implements C-LOOK disk scheduling to eliminate starvation and avoid unnecessary
+    head movement to disk boundaries.
+- Virtualization & Hardware Acceleration:
+  * Uses lightweight Docker containerization (via Linux cgroups and namespaces)
+    instead of heavy virtual machines, achieving startup times under 500 ms.
+  * Uses NVIDIA CUDA direct PCIe pass-through with pinned host memory to offload
+    tensor matrix multiplications directly to GPU streaming multiprocessors.
+
+================================================================================
+PART 3: SUMMARY OF PROJECT FILES
+================================================================================
+1. D:\Anitgravity\os pbl\app.py
+   -> Full working prototype with multithreading, synchronization, Banker's algorithm,
+      LRU caching, and AI sentiment crisis classification.
+2. D:\Anitgravity\os pbl\scheduler_benchmark.py
+   -> Comparative simulator for FCFS, SJF, SRTF, Priority, and Round Robin.
+3. D:\Anitgravity\os pbl\OS_PBL_REPORT_GROUP_24.docx
+   -> Full 21-section Academic Report in Microsoft Word format.
+4. D:\Anitgravity\os pbl\OS_PBL_REPORT_GROUP_24.md
+   -> Full 21-section Academic Report in Markdown format.
+5. D:\Anitgravity\os pbl\scripts\
+   -> Linux shell automation scripts (user_mgmt.sh, process_monitor.sh,
+      backup_automation.sh, system_health.sh).
+6. D:\Anitgravity\os pbl\requirements.txt
+   -> Python dependencies.
+================================================================================
